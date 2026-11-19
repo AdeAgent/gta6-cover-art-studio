@@ -1,23 +1,111 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Cover Snap</title>
-<link rel="stylesheet" href="./style.css">
+<title>Slant Six Studio — GTA-style cover art maker</title>
+<link rel="stylesheet" href="styles/editor.css">
 </head>
 <body>
-<main class="app">
-  <section class="controls">
-    <h1>Cover Snap</h1>
-    <p>A photo and a caption, made into a square cover.</p>
-    <label>Photo <input id="photo" type="file" accept="image/*"></label>
-    <label>Caption <input id="caption" type="text" maxlength="40" value="Sunset Heist"></label>
-    <button id="export" type="button">Export PNG 1080 x 1080</button>
-    <p id="status" role="status"></p>
+<header id="topBar">
+  <div class="brand">
+    <span id="monogramBadge" aria-hidden="true">S6</span>
+    <div class="brandText">
+      <h1>SLANT SIX <span>STUDIO</span></h1>
+      <p>Turn any photo into GTA-style cover art — multi-panel, sunset-graded, ready to post.</p>
+    </div>
+  </div>
+  <div id="stepFlow" aria-hidden="true"><strong>1</strong> Photos <em>→</em> <strong>2</strong> Style <em>→</em> <strong>3</strong> Export</div>
+  <div class="topActions">
+    <button id="undoButton" type="button" title="Undo (Ctrl+Z)">↶ Undo</button>
+    <button id="redoButton" type="button" title="Redo (Ctrl+Y)">↷ Redo</button>
+    <button id="surpriseButton" type="button" title="Surprise me (R)">⚄ Surprise me</button>
+    <button id="helpButton" type="button" title="Keyboard shortcuts (?)">?</button>
+  </div>
+</header>
+
+<main id="editorGrid">
+  <aside id="leftRail">
+    <section class="railBlock">
+      <h2>1 · Photos</h2>
+      <p class="hint">Click a photo, then click a panel to place it. Or drop files anywhere.</p>
+      <div id="photoTray" aria-label="Photo tray"></div>
+      <label id="dropZone" for="photoInput">+ Add your photos<input id="photoInput" type="file" accept="image/*" multiple hidden></label>
+      <button id="fillOnePhotoButton" type="button">Fill every panel with the selected photo</button>
+      <button id="shuffleButton" type="button">Shuffle photos across panels</button>
+      <p class="privacy">Photos never leave your device.</p>
+    </section>
+    <section class="railBlock">
+      <h2>2 · Layout</h2>
+      <div id="layoutPicker" aria-label="Layout picker"></div>
+    </section>
+  </aside>
+
+  <section id="stage">
+    <div id="canvasWrap">
+      <canvas id="coverCanvas" width="1920" height="1080"></canvas>
+      <div id="emptyState">
+        <p class="emptyTitle">Drop a photo</p>
+        <p>…or start from a sample:</p>
+        <div id="sampleButtons"></div>
+      </div>
+    </div>
+    <div id="panelCropControls" aria-label="Selected panel crop controls">
+      <span id="selectedPanelLabel">Panel 1</span>
+      <label>Zoom <input id="zoomSlider" type="range" min="1" max="3" step="0.01" value="1"></label>
+      <label>Rotate <input id="rotateSlider" type="range" min="-15" max="15" step="0.5" value="0"></label>
+      <button id="flipButton" type="button">Flip</button>
+      <label>Panel grade <select id="panelGradeSelect"></select></label>
+      <button id="resetPanelButton" type="button">Reset crop</button>
+      <span class="hint">Drag the panel to pan · scroll to zoom · drag panels onto each other to swap</span>
+    </div>
   </section>
-  <canvas id="cover" width="1080" height="1080" aria-label="The cover"></canvas>
+
+  <aside id="rightRail">
+    <section class="railBlock" id="captionEditor">
+      <h2>3 · Lettering</h2>
+      <label>Title <input id="titleInput" type="text" maxlength="26"></label>
+      <label>Subtitle (neon script) <input id="subtitleInput" type="text" maxlength="42"></label>
+      <label>Tagline <input id="taglineInput" type="text" maxlength="52"></label>
+      <label>Place <input id="placeInput" type="text" maxlength="26"></label>
+      <label>Sticker text <input id="stickerInput" type="text" maxlength="18"></label>
+      <div id="presetPicker" aria-label="Lettering presets"></div>
+    </section>
+    <section class="railBlock">
+      <h2>Grade</h2>
+      <div id="gradePicker" aria-label="Colour grade picker"></div>
+      <div id="effectToggles">
+        <label><input type="checkbox" id="grainToggle"> Film grain</label>
+        <label><input type="checkbox" id="halftoneToggle"> Halftone dots</label>
+        <label><input type="checkbox" id="bloomToggle"> Bloom glow</label>
+        <label><input type="checkbox" id="vignetteToggle"> Vignette</label>
+        <label><input type="checkbox" id="leakToggle"> Light leak</label>
+      </div>
+    </section>
+    <section class="railBlock">
+      <h2>4 · Export</h2>
+      <div id="exportSizes" aria-label="Export sizes"></div>
+      <button id="exportButton" type="button">Export PNG — this size</button>
+      <button id="exportAllButton" type="button">Export all 6 sizes (.zip)</button>
+    </section>
+  </aside>
 </main>
-<script type="module" src="./src/main.js"></script>
+
+<div id="shortcutOverlay" hidden>
+  <div class="sheet">
+    <h2>Shortcuts</h2>
+    <ul>
+      <li><b>Ctrl+Z / Ctrl+Y</b> undo / redo</li>
+      <li><b>Ctrl+S</b> export PNG at the current size</li>
+      <li><b>R</b> surprise me — new layout, grade and photo mix</li>
+      <li><b>Drag</b> on a panel to pan its photo · <b>scroll</b> to zoom</li>
+      <li><b>Double-click</b> the cover to edit the title in place</li>
+      <li><b>?</b> this overlay</li>
+    </ul>
+    <button id="closeHelpButton" type="button">Close</button>
+  </div>
+</div>
+
+<script type="module" src="src/main.js"></script>
 </body>
 </html>
